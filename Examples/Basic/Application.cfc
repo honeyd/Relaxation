@@ -1,15 +1,19 @@
 component output="false" {
 	
-	this.name = "RelaxationBasicTest";
+	this.name = hash( getCurrentTemplatePath() );
 	
 	/**
 	* @hint "I handle the start of requests. (Make sure Relaxation is setup.)"
 	* @output true
 	**/
 	public function onRequestStart() {
-		if ( isDefined("url.Reinit") || isNull(application.Relaxation) ) {
-			var Relaxation = new com.Relaxation.Relaxation( "./RestConfig.json.cfm" ).setBeanFactory( new TestFactory() );
-			application.Relaxation = Relaxation;
+		if ( isDefined("url.Reinit") || isNull(application.REST) ) {
+			application.BeanFactory = new TestFactory();
+			var Relaxation = new Relaxation.Relaxation.Relaxation( "./RestConfig.json.cfm" );
+			Relaxation.setBeanFactory( application.BeanFactory );
+			Relaxation.setOnErrorMethod( handleError );
+			Relaxation.setAuthorizationMethod( handleAuth );
+			application.REST = Relaxation;
 		}
 	}
 	
@@ -18,13 +22,20 @@ component output="false" {
 	* @output true
 	**/
 	public void function onRequest() {
-		var result = application.Relaxation.handleRequest( CGI.PATH_INFO );
-		getpagecontext().getresponse().setcontenttype('application/json');
-		if ( result.Success ) {
-			writeOutput( result.Output );
-		} else {
-			writeOutput( SerializeJSON(result) );
-		}
+		application.REST.handleRequest();
+	}
+	
+	/**
+	* @hint "I handle errors."
+	* @output false
+	**/
+	private void function handleError(Any e) {
+		application.BeanFactory.getBean("ErrorLogger").logError( arguments.e );
+		return;
+	}
+	
+	private boolean function handleAuth(resource) {
+		return true;
 	}
 	
 }

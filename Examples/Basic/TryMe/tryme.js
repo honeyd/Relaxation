@@ -19,7 +19,7 @@ $(function() {
 		}).always(function(data){
 			for (var v in data) {
 				$('select.products').append(
-					$('<option></option>').val(data[v].ProductID).html(data[v].Name)
+					$('<option></option>').val(data[v].ProductID).html(data[v].Name).data('product',data[v])
 				);
 			}
 			if (data.length == 0) {
@@ -27,10 +27,18 @@ $(function() {
 			} else {
 				$('.noProducts').hide();
 			}
+			$('select.products').change();
 		});
 	}
 	
 	loadProducts();
+	
+	$('select.products').on('change', function() {
+		var product = $(this).find(':selected').first().data('product');
+		$('input[name=productNameSave]').val(product.Name);
+		$('input[name=priceSave]').val(product.Price);
+		$('input[name=vendorSave]').val(product.Vendor);
+	});
 	
 	$('.collapseResponse').on('click', function() {
 		$(this).closest('.response').toggle();
@@ -58,6 +66,28 @@ $(function() {
 			dataType: 'json'
 		}).always(function(data){
 			showResponse($this, data);
+		});
+	});
+	
+	$('.getProductItemVerbOptions').on('click', function() {
+		var $this = $(this);
+		$.ajax({
+			url: '/Relaxation/Examples/Basic/index.cfm/product/1',
+			type: 'OPTIONS',
+			complete: function(xhr){
+				showResponse($this, xhr.getResponseHeader('Allow'));
+			}
+		});
+	});
+	
+	$('.getProductVerbOptions').on('click', function() {
+		var $this = $(this);
+		$.ajax({
+			url: '/Relaxation/Examples/Basic/index.cfm/product',
+			type: 'OPTIONS',
+			complete: function(xhr){
+				showResponse($this, xhr.getResponseHeader('Allow'));
+			}
 		});
 	});
 	

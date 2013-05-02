@@ -355,7 +355,6 @@ component
 		} else {
 			var _bean = CreateObject("component", arguments.Bean);
 			if ( IsDefined("_bean.init") ) {
-				/* It has a constructor. So, call it. */
 				_bean.init();
 			}
 			return _bean;
